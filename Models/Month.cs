@@ -1,8 +1,8 @@
 ﻿using System;
 
-public class Class1
+public class Month
 {
-	public Class1()
+	public Month()
 	{
 		public bool something = true;
 	}
