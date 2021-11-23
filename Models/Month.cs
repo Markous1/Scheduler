@@ -4,6 +4,6 @@ public class Month
 {
 	public Month()
 	{
-		public bool something;
+		public bool somethingElse;
 	}
 }
