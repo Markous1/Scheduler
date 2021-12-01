@@ -54,7 +54,7 @@ namespace Scheduler.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Title,Description,StartDateTime,EndDateTime")] Event @event)
+        public async Task<IActionResult> Create([Bind("Id,Title,Description,StartTime,EndDate")] Event @event)
         {
             if (ModelState.IsValid)
             {
@@ -86,7 +86,7 @@ namespace Scheduler.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long id, [Bind("Id,Title,Description,StartDateTime,EndDateTime")] Event @event)
+        public async Task<IActionResult> Edit(long id, [Bind("Id,Title,Description,StartTime,EndDate")] Event @event)
         {
             if (id != @event.Id)
             {
