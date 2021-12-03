@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -13,16 +15,19 @@ namespace Scheduler.Controllers
     public class EventsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private UserManager<ApplicationUser> _userManager;
 
-        public EventsController(ApplicationDbContext context)
+        public EventsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: Events
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Event.ToListAsync());
+            ApplicationUser _currentUser = await _userManager.GetUserAsync(User);
+            return View(await _context.Event.Where(e => e.Owner.Id == _currentUser.Id).ToListAsync());
         }
 
         // GET: Events/Details/5
@@ -43,6 +48,7 @@ namespace Scheduler.Controllers
             return View(@event);
         }
 
+        [Authorize]
         // GET: Events/Create
         public IActionResult Create()
         {
@@ -52,12 +58,15 @@ namespace Scheduler.Controllers
         // POST: Events/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [Authorize]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Title,Description,StartDateTime,EndDateTime")] Event @event)
         {
             if (ModelState.IsValid)
             {
+
+                @event.Owner = await _userManager.GetUserAsync(User);
                 _context.Add(@event);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
