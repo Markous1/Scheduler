@@ -30,34 +30,42 @@ var currMonth = date.getMonth();
 var currDay = date.getDate();
 var curryear = date.getFullYear();
 var firstDay = new Date(curryear, currMonth, 1).getDay();
+var namesOfDays = "";
+var numberOfDays = 0;
+
+const days = document.querySelector(".days");
+const daysNames = document.querySelector(".daynames");
+
 
 document.getElementById("monthname").innerHTML = months[currMonth];
 document.getElementById("year").innerHTML = curryear;
 
-const days = document.querySelector(".days");
-
-let days1 = "";
-
-for (let i = 1; i <= firstDay; i++) {
-    days1 += `<div></div>`;
-}
-
-for (let i = 1; i <= 31; i++) {
-    days1 += `<div>${i}</div>`;
-}
-
-days.innerHTML = days1;
-
-const days3 = document.querySelector(".daynames");
-
-let namesOfDays = "";
+renderCalander(firstDay);
 
 for (let i = 0; i <= dayNames.length - 1; i++) {
     namesOfDays += `<div>${dayNames[i]}</div>`;
-    days3.innerHTML = namesOfDays;
+    daysNames.innerHTML = namesOfDays;
 }
 
-var numberOfDays = 0;
+function renderCalander(firstDays) {
+
+    var newDates = "";
+    while (days.firstChild) {
+        days.removeChild(days.firstChild);
+    }
+
+    dayInMoths(currMonth, curryear);
+
+    for (let i = 1; i <= firstDays; i++) {
+        newDates += `<div></div>`;
+    }
+
+    for (let i = 1; i <= numberOfDays; i++) {
+        newDates += `<div class = "numberDays"onclick="create()">${i}</div>`;
+    }
+    days.innerHTML = newDates;
+}
+
 function dayInMoths(month, year) {
 
     if (month == 1) {
@@ -73,24 +81,6 @@ function dayInMoths(month, year) {
     else {
         numberOfDays = 31;
     }
-}
-
-function renderCalander(firstDays) {
-
-    var newDates = "";
-    while (days.firstChild) {
-        days.removeChild(days.firstChild);
-    }
-
-    dayInMoths(currMonth, curryear);
-    for (let i = 1; i <= firstDays; i++) {
-        newDates += `<div></div>`;
-    }
-
-    for (let i = 1; i <= numberOfDays; i++) {
-        newDates += `<div>${i}</div>`;
-    }
-    days.innerHTML = newDates;
 }
 
 function nextCal() {
@@ -119,4 +109,8 @@ function prevCal() {
     renderCalander(firstDay, currMonth);
     document.getElementById("monthname").innerHTML = months[currMonth];
     document.getElementById("year").innerHTML = curryear;
+}
+
+function create() {
+    window.location.href = '/Events/Create';
 }

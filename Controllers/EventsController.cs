@@ -30,6 +30,12 @@ namespace Scheduler.Controllers
             return View(await _context.Event.Where(e => e.Owner.Id == _currentUser.Id).ToListAsync());
         }
 
+        public async Task<IActionResult> Calender()
+        {
+            ApplicationUser _currentUser = await _userManager.GetUserAsync(User);
+            return View(await _context.Event.Where(e => e.Owner.Id == _currentUser.Id).ToListAsync());
+        }
+
         // GET: Events/Details/5
         public async Task<IActionResult> Details(long? id)
         {

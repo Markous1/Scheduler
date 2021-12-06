@@ -1,9 +1,7 @@
 ﻿
 <link rel="stylesheet" href="~/css/style.css" />
-<div class="container2">
+<div class="box">
     <div class="calendar">
-        <button type="button" id="backwards" onclick="prevCal()">previous</button>
-        <button type="button" id="forward" onclick="nextCal()">Next</button>
         <div class=month>
             <div class="date">
                 <h1 id="monthname"></h1>
@@ -13,5 +11,12 @@
         <div class="daynames"></div>
         <div class="days"></div>
     </div>
+    <div class="btns">
+        <a class="createbtn" asp-area="" asp-controller="Events" asp-action="Create">Add Event</a>
+    </div>
+</div>
+<div class="footerbtns">
+    <a class="backward" onclick="prevCal()">previous</a>
+    <a class="forward" onclick="nextCal()">Next</a>
 </div>
 <script src="~/js/calenderscript.js" asp-append-version="true"></script>
