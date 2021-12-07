@@ -1,0 +1,25 @@
+
+img {
+    width: 800px;
+    height: 800px;
+    border-radius: 10%;
+}
+.image-container {
+    border-style: solid;
+    display: flex;
+    align-items: center;
+    border-color: #121212;
+}
+.orginize-text h1{
+    font-size: 20px;
+    color: white;
+}
+
+body {
+    background-color: #121212;
+    top: 60px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+}
+
