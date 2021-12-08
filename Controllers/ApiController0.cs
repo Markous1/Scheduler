@@ -165,7 +165,7 @@ namespace Scheduler.Controllers
             public const int CREATE_EVENT = 3;
             public const int EDIT_EVENT = 4;
 
-            
+
         }
         public class _Request
         {
@@ -176,7 +176,7 @@ namespace Scheduler.Controllers
                 public string Description { get; set; }
                 public long Start { get; set; } // measured in ticks
                 public long End { get; set; }   // measured in ticks
-                
+
                 public int? ReturnHash { get; set; }
             };
 
@@ -224,13 +224,13 @@ namespace Scheduler.Controllers
 
         }
 
-        public class _Respose {
+        public class _Respose<Tpayload> {
             public int ResponseType { get; set; }
             public bool Success { get; set; }
 
             public string FailReason { get; set; }
 
-            public string PayLoad { get; set; }
+            public Tpayload PayLoad { get; set; }
 
             public int? ReturnHash { get; set; }
         }
@@ -254,62 +254,63 @@ namespace Scheduler.Controllers
                 return task.Result;
             }
 
-            public _Respose Process_GE(_Request.GetEvents_requ req)
+            public _Respose<_Request.Event_spec1[]> Process_GE(_Request.GetEvents_requ req)
             {
                 // check if request was null
-                if (req == null) return new _Respose
+                if (req == null) return new _Respose<_Request.Event_spec1[]>
                 {
                     Success = false,
                     ResponseType = Qtype.GET_EVENTS,
                     FailReason = FailReason.NULL_REQ,
                     ReturnHash = -1,
-                    PayLoad = ""
+                    PayLoad = null
                 };
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return new _Respose
+                if (user == null) return new _Respose<_Request.Event_spec1[]>
                 {
                     Success = false,
                     ResponseType = Qtype.GET_EVENTS,
                     FailReason = FailReason.NEED_LOGIN,
                     ReturnHash = req.ReturnHash,
-                    PayLoad = ""
+                    PayLoad = null
                 };
 
                 // get events for events 
                 IQueryable<Event> eventSet = _context.Event.Where(e => e.Owner.Id.Equals(user.Id));
                 // filter by date
-                if (req.From != null) eventSet.Where(e => e.StartDateTime.Ticks >= req.From);
-                if(req.To != null) eventSet.Where(e => e.StartDateTime.Ticks <= req.To);
+                if (req.From != null) eventSet = eventSet.Where(e => e.StartDateTime.Ticks >= req.From);
+                if (req.To != null) eventSet = eventSet.Where(e => e.StartDateTime.Ticks <= req.To);
                 // remove sensitive user-info
-                eventSet.Select(e => new _Request.Event_spec1 {
+                var payload = eventSet.Select(e => new _Request.Event_spec1 {
                     Title = e.Title,
                     Description = e.Description,
                     Start = e.StartDateTime.Ticks,
                     End = e.EndDateTime.Ticks,
                     OwnerUserName = user.UserName
-                });
+                }).ToArray();
 
-                // serialize-result
-                string _payload = JsonSerializer.Serialize(eventSet.ToArray());
-
-                return new _Respose {
+                return new _Respose<_Request.Event_spec1[]>
+                {
                     Success = true,
                     ResponseType = Qtype.GET_EVENTS,
                     FailReason = FailReason.NA,
                     ReturnHash = req.ReturnHash,
-                    PayLoad = _payload
+                    PayLoad = payload
                 };
             }
         }
 
 
-        [Route("GetEvents")]
-        public _Respose GetEvents(_Request.GetEvents_requ req) {
+        [Route("GetEvents/{reqStr}")]
+        public string GetEvents(string reqStr) {
             var rpu = new RequestProcessUtil(_context, _userManager, User);
-            return rpu.Process_GE(req);
+            var req = reqStr==null ? null : JsonSerializer.Deserialize<_Request.GetEvents_requ>(reqStr);
+            var resp = rpu.Process_GE(req);
+            var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1[]>>(resp);
+            return respStr;
         }
-
+        
 
     }
 }
