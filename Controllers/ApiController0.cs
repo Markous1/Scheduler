@@ -154,7 +154,8 @@ namespace Scheduler.Controllers
             public const string NEED_LOGIN = "You are not logged in";
             public const string INVALID_JSON = "Your request could not be parsed";
             public const string NULL_REQ = "The request was null";
-
+            public const string EVENT_NOT_FOUND_OR_INACCESSABLE = "Event not found, OR you do not have permission to view it.";
+            public const string INVALID_ARG = "Invalid arguments";
             public const string NA = "N/A";
         }
         public class Qtype
@@ -167,6 +168,9 @@ namespace Scheduler.Controllers
 
 
         }
+
+
+        
         public class _Request
         {
             public const string QTYPE_PROPERTY_NAME = "Qtype";
@@ -177,12 +181,44 @@ namespace Scheduler.Controllers
                 public long Start { get; set; } // measured in ticks
                 public long End { get; set; }   // measured in ticks
 
-                public int? ReturnHash { get; set; }
+                public Event_spec() {
+                    Title = "";
+                    Description = "";
+                    Start = -1;
+                    End = -1;
+                }
+
+                public Event_spec(Event @event)
+                {
+                    this.Title = @event.Title;
+                    this.Description = @event.Description;
+                    this.Start = @event.StartDateTime.Ticks;
+                    this.End = @event.EndDateTime.Ticks;
+                }
             };
 
             public class Event_spec1 : Event_spec // includes owner user-name
             {
                 public string OwnerUserName { get; set; } // username
+                public long? Id { get; set; }
+                public Event_spec1() : base()
+                {
+                    OwnerUserName = "";
+                    Id = null;
+                }
+                public Event_spec1(Event @event) : base(@event)
+                {
+                    if (@event.Owner == null)
+                    {
+                        this.OwnerUserName = null;
+                        this.Id = null;
+                    }
+                    else
+                    {
+                        this.OwnerUserName = @event.Owner.UserName;
+                        this.Id = @event.Id;
+                    }
+                }
             }
 
             public class GetEvents_requ
@@ -254,6 +290,85 @@ namespace Scheduler.Controllers
                 return task.Result;
             }
 
+            #region -- standard responses
+            private object convertResponse(int qtype, _Respose<object> resp) {
+                _Respose<T> make<T>(_Respose<object> r)
+                {
+                    return new _Respose<T> {
+                        ResponseType = r.ResponseType,
+                        Success = r.Success,
+                        FailReason = r.FailReason,
+                        PayLoad = (T)r.PayLoad,
+                        ReturnHash = r.ReturnHash
+                    };
+                }
+                switch (qtype)
+                {
+                    case Qtype.CREATE_EVENT:
+                    case Qtype.DELETE_EVENT:
+                    case Qtype.EDIT_EVENT:
+                    case Qtype.GET_ONE_EVENT:
+                        return (object)make<_Request.Event_spec1>(resp);
+                    case Qtype.GET_EVENTS:
+                        return (object)make<_Request.Event_spec1[]>(resp);
+                    default: throw new Exception("INVALID TYPE-CODE");
+                }
+            }
+            private object GenerateNullResponse(int qtype) {
+
+                _Respose<object> resp = new _Respose<object> {
+                    ResponseType = qtype,
+                    Success = false,
+                    FailReason = FailReason.NULL_REQ,
+                    PayLoad = null,
+                    ReturnHash = -1
+                };
+                return convertResponse(qtype, resp);
+            }
+
+            private _Respose<_Request.Event_spec1> GenerateNotFoundResponse(_Request.GetOneEvent_requ requ)
+            {
+                return new _Respose<_Request.Event_spec1> {
+                    ResponseType = Qtype.GET_ONE_EVENT,
+                    Success = false,
+                    FailReason = FailReason.EVENT_NOT_FOUND_OR_INACCESSABLE,
+                    PayLoad = null,
+                    ReturnHash = requ.ReturnHash
+                };
+            }
+
+            private object GenerateInvalidResponse(int qtype) {
+
+                _Respose<object> resp = new _Respose<object>
+                {
+                    ResponseType = qtype,
+                    Success = false,
+                    FailReason = FailReason.INVALID_JSON,
+                    PayLoad = null,
+                    ReturnHash = -1
+                };
+                return convertResponse(qtype, resp);
+            }
+
+            private object GenerateNeedLoginResponse<T>(int qtype, int? retHash)
+            {
+                _Respose<object> resp = new _Respose<object>
+                {
+                    ResponseType = qtype,
+                    Success = false,
+                    FailReason = FailReason.NEED_LOGIN,
+                    PayLoad = null,
+                    ReturnHash = retHash
+                };
+                return convertResponse(qtype, resp);
+            }
+            #endregion
+
+
+
+
+            /* Process GetEvents request
+             */
             public _Respose<_Request.Event_spec1[]> Process_GE(_Request.GetEvents_requ req)
             {
                 // check if request was null
@@ -282,13 +397,7 @@ namespace Scheduler.Controllers
                 if (req.From != null) eventSet = eventSet.Where(e => e.StartDateTime.Ticks >= req.From);
                 if (req.To != null) eventSet = eventSet.Where(e => e.StartDateTime.Ticks <= req.To);
                 // remove sensitive user-info
-                var payload = eventSet.Select(e => new _Request.Event_spec1 {
-                    Title = e.Title,
-                    Description = e.Description,
-                    Start = e.StartDateTime.Ticks,
-                    End = e.EndDateTime.Ticks,
-                    OwnerUserName = user.UserName
-                }).ToArray();
+                var payload = eventSet.Select(e => new _Request.Event_spec1(e)).ToArray();
 
                 return new _Respose<_Request.Event_spec1[]>
                 {
@@ -299,6 +408,91 @@ namespace Scheduler.Controllers
                     PayLoad = payload
                 };
             }
+
+            /* Process GetOneEvent request
+             */
+            public _Respose<_Request.Event_spec1> Process_GOE(_Request.GetOneEvent_requ req)
+            {
+                // check if request was null
+                if (req == null) return (_Respose<_Request.Event_spec1>)GenerateNullResponse(Qtype.GET_ONE_EVENT);
+
+                // get the current-user
+                ApplicationUser user = GetAppUser();
+                if (user == null) return (_Respose<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.GET_ONE_EVENT, req.ReturnHash);
+
+                // try to get the requested event
+                IQueryable<_Request.Event_spec1> resultSet = _context.Event
+                       .Where(x => x.Id.Equals(req.Id) && x.Owner.Id.Equals(user.Id))
+                       .Select(x => new _Request.Event_spec1(x));
+
+                // check if we found it
+                if (!resultSet.Any()) return (_Respose<_Request.Event_spec1>)GenerateNotFoundResponse(req);
+
+                // extract the event
+                _Request.Event_spec1 payload = resultSet.First();
+
+                // return the event
+                return new _Respose<_Request.Event_spec1> {
+                    Success = true,
+                    ResponseType = Qtype.GET_ONE_EVENT,
+                    FailReason = FailReason.NA,
+                    ReturnHash = req.ReturnHash,
+                    PayLoad = payload
+                };
+            }
+
+            /* Process CreateEvent request
+             */
+            public _Respose<_Request.Event_spec1> Process_CRE(_Request.CreateEvent_requ req)
+            {
+                // check if request was null
+                if (req == null) return (_Respose<_Request.Event_spec1>)GenerateNullResponse(Qtype.CREATE_EVENT);
+
+                // get the current-user
+                ApplicationUser user = GetAppUser();
+                if (user == null) return (_Respose<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.CREATE_EVENT, req.ReturnHash);
+
+                // check for valid start/stop :
+                if (req.Spec.End < req.Spec.Start)
+                    return new _Respose<_Request.Event_spec1> {
+                        Success = false,
+                        ResponseType = Qtype.CREATE_EVENT,
+                        FailReason = FailReason.INVALID_ARG + "|An event cannot end before it begins!",
+                        ReturnHash = req.ReturnHash,
+                        PayLoad = null
+                    };
+
+                // extract the specification
+                var spec = req.Spec;
+
+                // build Event-model
+                Event @event = new Event {
+                    Description = spec.Description,
+                    EndDateTime = new DateTime(ticks: spec.End),
+                    StartDateTime = new DateTime(ticks: spec.Start),
+                    Owner = user,
+                    Title = spec.Title
+                };
+
+                // put new request in database
+                _context.Event.Add(@event);
+
+                // update-database
+                _context.SaveChanges();
+
+                
+                // confirm-creation
+                return new _Respose<_Request.Event_spec1>
+                {
+                    Success = true,
+                    FailReason = FailReason.NA,
+                    PayLoad = new _Request.Event_spec1(@event),
+                    ResponseType = Qtype.CREATE_EVENT,
+                    ReturnHash = req.ReturnHash
+                };
+            }
+
+         //   private void foo() { var x = Qtype. }
         }
 
 
@@ -310,7 +504,25 @@ namespace Scheduler.Controllers
             var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1[]>>(resp);
             return respStr;
         }
-        
 
+        [Route("GetOneEvent/{reqStr}")]
+        public string GetOneEvent(string reqStr) {
+            var rpu = new RequestProcessUtil(_context, _userManager, User);
+            var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.GetOneEvent_requ>(reqStr);
+            var resp = rpu.Process_GOE(req);
+            var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1>>(resp);
+            return respStr;
+        }
+
+        [Route("CreateEvent/{reqStr}")]
+        public string CreateEvent(string reqStr) 
+        {
+            var rpu = new RequestProcessUtil(_context, _userManager, User);
+            var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.CreateEvent_requ>(reqStr);
+            var resp = rpu.Process_CRE(req);
+            var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1>>(resp);
+            return respStr;
+        }
+        
     }
 }
