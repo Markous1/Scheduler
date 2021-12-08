@@ -12,7 +12,9 @@ namespace Scheduler.Models
 
         [Required(ErrorMessage = "Title is required")]
         public string Title { get; set; }
+
         public string Description { get; set; }
+
         public ApplicationUser Owner { get; set; }
         
         [Required(ErrorMessage = "Start Date/Time is required")]
