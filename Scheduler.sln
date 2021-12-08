@@ -5,7 +5,10 @@ VisualStudioVersion = 16.0.31729.503
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler", "Scheduler.csproj", "{4A95BDDE-4996-461E-8773-D508275D3690}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerUnitTests", "..\SchedulerUnitTests\SchedulerUnitTests.csproj", "{B43EB53C-E569-4BDB-B329-DB8C920649B0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SchedulerUnitTests", "..\SchedulerUnitTests\SchedulerUnitTests.csproj", "{B43EB53C-E569-4BDB-B329-DB8C920649B0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4A95BDDE-4996-461E-8773-D508275D3690} = {4A95BDDE-4996-461E-8773-D508275D3690}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
