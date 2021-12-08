@@ -3,16 +3,16 @@
   "contentVersion": "1.0.0.0",
   "parameters": {
     "resourceGroupName": {
-        "type": "string",
-        "defaultValue": "Scheduler",
-        "metadata": {
-            "_parameterType": "resourceGroup",
-            "description": "Name of the resource group for the resource. It is recommended to put resources under same resource group for better tracking."
-        }
+      "type": "string",
+      "defaultValue": "Scheduler",
+      "metadata": {
+        "_parameterType": "resourceGroup",
+        "description": "Name of the resource group for the resource. It is recommended to put resources under same resource group for better tracking."
+      }
     },
     "resourceGroupLocation": {
       "type": "string",
-      "defaultValue": "southcentralus",
+      "defaultValue": "australiacentral",
       "metadata": {
         "_parameterType": "location",
         "description": "Location of the resource group. Resource groups could have different location than resources."
