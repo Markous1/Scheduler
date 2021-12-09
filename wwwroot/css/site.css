@@ -12,6 +12,28 @@ a {
   color: #0366d6;
 }
 
+p {
+    color:white;
+
+}
+
+h2{
+    color:white;
+
+}
+
+h4 {
+    color: white;
+}
+
+label{
+    color:white;
+}
+
+h5{
+    color:white;
+}
+
 .btn-primary {
   color: #fff;
   background-color: #1b6ec2;
