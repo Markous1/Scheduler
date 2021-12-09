@@ -588,8 +588,7 @@ namespace Scheduler.Controllers
         [Route("GetEvents/{reqStr}")]
         public string GetEvents(string reqStr) {
             var rpu = new RequestProcessUtil(_context, _userManager, User);
-            var req = reqStr==null ? null : JsonSerializer.Deserialize<_Request.GetEvents_requ>(reqStr);
-            var resp = rpu.Process_GE(req);
+            var resp = rpu.Process_GE(reqStr);
             var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1[]>>(resp);
             return respStr;
         }
@@ -597,8 +596,7 @@ namespace Scheduler.Controllers
         [Route("GetOneEvent/{reqStr}")]
         public string GetOneEvent(string reqStr) {
             var rpu = new RequestProcessUtil(_context, _userManager, User);
-            var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.GetOneEvent_requ>(reqStr);
-            var resp = rpu.Process_GOE(req);
+            var resp = rpu.Process_GOE(reqStr);
             var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
             return respStr;
         }
@@ -607,8 +605,7 @@ namespace Scheduler.Controllers
         public string CreateEvent(string reqStr) 
         {
             var rpu = new RequestProcessUtil(_context, _userManager, User);
-            var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.CreateEvent_requ>(reqStr);
-            var resp = rpu.Process_CRE(req);
+            var resp = rpu.Process_CRE(reqStr);
             var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
             return respStr;
         }
@@ -617,8 +614,7 @@ namespace Scheduler.Controllers
         public string DeleteEvent(string reqStr)
         {
             var rpu = new RequestProcessUtil(_context, _userManager, User);
-            var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.DeleteEvent_requ>(reqStr);
-            var resp = rpu.Process_DEL(req);
+            var resp = rpu.Process_DEL(reqStr);
             var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
             return respStr;
         }
