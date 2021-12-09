@@ -12,6 +12,8 @@ using System.Security.Claims;
 
 namespace Scheduler.Controllers
 {
+    /* Controller class handles requests to this application's api (version 0.0)
+     */
     [Route("api/v0.0")]
     [ApiController]
     public class ApiController0 : ControllerBase
@@ -150,14 +152,19 @@ namespace Scheduler.Controllers
          *        
          */
 
+        /* This class contains string constants with human-readable explanations for why I a query to the api failed
+         */
         public class FailReason {
             public const string NEED_LOGIN = "You are not logged in";
             public const string INVALID_JSON = "Your request could not be parsed";
             public const string NULL_REQ = "The request was null";
             public const string EVENT_NOT_FOUND_OR_INACCESSABLE = "Event not found, OR you do not have permission to view it.";
             public const string INVALID_ARG = "Invalid arguments";
-            public const string NA = "N/A";
+            public const string NA = "N/A"; // Not-Applicable : for when the query did NOT fail
         }
+
+        /*  This class contains int constants that encode the types of query this api handles
+         */
         public class Qtype
         {
             public const int GET_EVENTS = 0;
@@ -416,8 +423,10 @@ namespace Scheduler.Controllers
                 // filter by date
                 if (req.From != null) eventSet = eventSet.Where(e => e.StartDateTime.Ticks >= req.From);
                 if (req.To != null) eventSet = eventSet.Where(e => e.StartDateTime.Ticks <= req.To);
-                // remove sensitive user-info
-                var payload = eventSet.Select(e => new _Request.Event_spec1(e)).ToArray();
+                // remove sensitive user-info, and order by date
+                var payload = eventSet.OrderBy(e => e.StartDateTime)              /* remove sensitive user-data            */
+                    .Select(e => new _Request.Event_spec1(e))                     /* order-by-startDate                    */
+                    .ToArray();                                                   /* convert to (Json-friendly) array form */
 
                 return new _Response<_Request.Event_spec1[]>
                 {
