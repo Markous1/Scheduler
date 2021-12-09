@@ -169,8 +169,6 @@ namespace Scheduler.Controllers
 
         }
 
-
-        
         public class _Request
         {
             public const string QTYPE_PROPERTY_NAME = "Qtype";
@@ -211,13 +209,12 @@ namespace Scheduler.Controllers
                     if (@event.Owner == null)
                     {
                         this.OwnerUserName = null;
-                        this.Id = null;
                     }
                     else
                     {
                         this.OwnerUserName = @event.Owner.UserName;
-                        this.Id = @event.Id;
                     }
+                    this.Id = @event.Id;
                 }
             }
 
