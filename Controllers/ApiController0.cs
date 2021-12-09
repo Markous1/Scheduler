@@ -581,6 +581,45 @@ namespace Scheduler.Controllers
                 return Adaptr<_Request.Event_spec1, _Request.DeleteEvent_requ>(Qtype.DELETE_EVENT, reqStr, Process_DEL);
             }
 
+            /* Process EditEvent request 
+             */
+            public _Response<_Request.Event_spec1[]> Process_EDI(_Request.EditEvent_requ req)
+            {
+                /* const int qtyp = Qtype.EDIT_EVENT;
+                 // check if request was null
+                 if (req == null) return (_Response<_Request.Event_spec1[]>)GenerateNullResponse(qtyp);
+
+                 // get the current-user
+                 ApplicationUser user = GetAppUser();
+                 if (user == null) return (_Response<_Request.Event_spec1[]>)GenerateNeedLoginResponse<_Request.Event_spec1>(qtyp, req.ReturnHash);
+
+                 // try to get the requested event
+                 IQueryable<Event> resultSet = _context.Event
+                        .Where(x => x.Id.Equals(req.id) && x.Owner.Id.Equals(user.Id));
+
+                 // check if we found it
+                 if (!resultSet.Any()) return (_Response<_Request.Event_spec1>)GenerateNotFoundResponse(qtyp, req.r);
+
+                 // extract the event
+                 Event toDelete = resultSet.First();
+
+                 // save the details
+                 _Request.Event_spec1 payload = new _Request.Event_spec1(toDelete); */
+
+                /* TODO */
+
+                return new _Response<_Request.Event_spec1[]>
+                {
+                    Success = false,
+                    FailReason = "NOT-IMPLEMENTED",
+                    ResponseType = Qtype.EDIT_EVENT,
+                    PayLoad = null,
+                    ReturnHash = -1
+                };
+
+
+                //return null;
+            }
         }
 
 
@@ -618,6 +657,7 @@ namespace Scheduler.Controllers
             var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
             return respStr;
         }
+
 
         
     }
