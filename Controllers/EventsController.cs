@@ -198,5 +198,6 @@ namespace Scheduler.Controllers
         {
             return _context.Event.Any(e => e.Id == id);
         }
+
     }
 }

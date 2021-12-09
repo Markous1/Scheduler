@@ -84,16 +84,14 @@
 }
 .footerbtns {
     display: flex;
-    padding: 20px 50px;
     font-size: 1.25rem;
     position: relative;
-    margin: 32px;
     align-items: center;
 }
 
 .numberDays:hover {
     color: white;
-    background-color: #FFBD44;
+    background-color: #FF605C;
     border-radius: 50%;
     cursor: pointer;
 }
@@ -123,7 +121,7 @@
 
 a:not([href]):not([tabindex]){
     color: white;
-    border-radius: 30px;
+    margin: 5px;
 }
 
 body {

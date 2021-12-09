@@ -1,11 +1,12 @@
-﻿@model IEnumerable<Scheduler.Models.Event>
+@model IEnumerable<Scheduler.Models.Event>
 
 @{
     ViewData["Title"] = "Index";
 }
 
 <link rel="stylesheet" href="~/css/calander.css" />
-<h1>Upcoming Events</h1>
+   
+<h1 class="text-white">Upcoming Events</h1>
 
 <form asp-action="Index" method="get">
     <div class="form-actions no-color">
@@ -20,16 +21,16 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
+            <th class="text-white">
                 <a asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParm"]">@Html.DisplayNameFor(model => model.Title)</a>
             </th>
-            <th>
+            <th class="text-white">
                 @Html.DisplayNameFor(model => model.Description)
             </th>
-            <th>
+            <th class="text-white">
                 <a asp-action="Index" asp-route-sortOrder="@ViewData["StartDateSortParm"]">@Html.DisplayNameFor(model => model.StartDateTime)</a>
             </th>
-            <th>
+            <th class="text-white">
                 @Html.DisplayNameFor(model => model.EndDateTime)
             </th>
             <th></th>
@@ -38,22 +39,22 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            <td>
+            <td class="text-white">
                 @Html.DisplayFor(modelItem => item.Title)
             </td>
-            <td>
+            <td class="text-white">
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
-            <td>
+            <td class="text-white">
                 @Html.DisplayFor(modelItem => item.StartDateTime)
             </td>
-            <td>
+            <td class="text-white">
                 @Html.DisplayFor(modelItem => item.EndDateTime)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <a class="btn btn-success" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a class="btn btn-warning" asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
             </td>
         </tr>
 }
