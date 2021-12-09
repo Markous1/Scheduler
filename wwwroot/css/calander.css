@@ -121,7 +121,7 @@
 
 a:not([href]):not([tabindex]){
     color: white;
-    border-radius: 30px;
+    margin: 5px;
 }
 
 body {

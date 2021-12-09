@@ -61,7 +61,7 @@ function renderCalander(firstDays) {
     }
 
     for (let i = 1; i <= numberOfDays; i++) {
-        newDates += `<div class = "numberDays"onclick="create()">${i}</div>`;
+        newDates += `<div id = "${currMonth}/${i}/${curryear}" class = "numberDays"onclick="create()">${i}</div>`;
     }
     days.innerHTML = newDates;
 }
