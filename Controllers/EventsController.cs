@@ -24,14 +24,48 @@ namespace Scheduler.Controllers
         }
 
         // GET: Events
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder, string searchString)
         {
+            /* Users can click on column names to sort events by title or date. 
+             * They can also search for events by title or description. 
+             * By default, events are sorted by date ascending. 
+             */
+
+            ViewData["TitleSortParm"] = sortOrder == "title_asc" ? "title_desc" : "title_asc";
+            ViewData["StartDateSortParm"] = sortOrder == "date_asc" ? "date_desc" : "date_asc";
+            ViewData["CurrentFilter"] = searchString;
+            var events = from e in _context.Event select e;
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                events = events.Where(e => e.Title.Contains(searchString)|| e.Description.Contains(searchString));
+            }
+            switch (sortOrder)
+            {
+                case "title_asc":
+                    events = events.OrderBy(e => e.Title);
+                    break;
+                case "title_desc":
+                    events = events.OrderByDescending(e => e.Title);
+                    break;
+                case "date_asc":
+                    events = events.OrderBy(e => e.StartDateTime);
+                    break;
+                case "date_desc":
+                    events = events.OrderByDescending(e => e.StartDateTime);
+                    break;
+                default:
+                    events = events.OrderBy(e => e.StartDateTime);
+                    break;
+            }
+
+            // Return list of events according to search parameter, sort order, and current user 
             ApplicationUser _currentUser = await _userManager.GetUserAsync(User);
-            return View(await _context.Event.Where(e => e.Owner.Id == _currentUser.Id).ToListAsync());
+            return View(await events.AsNoTracking().Where(e => e.Owner.Id == _currentUser.Id).ToListAsync());
         }
 
         public async Task<IActionResult> Calender()
         {
+
             ApplicationUser _currentUser = await _userManager.GetUserAsync(User);
             return View(await _context.Event.Where(e => e.Owner.Id == _currentUser.Id).ToListAsync());
         }
