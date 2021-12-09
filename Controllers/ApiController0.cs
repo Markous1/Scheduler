@@ -238,9 +238,9 @@ namespace Scheduler.Controllers
 
             public class DeleteEvent_requ
             {
-                public long Id { get; set; }
+                public long id { get; set; }
 
-                public int? ReturnHash { get; set; }
+                public int? returnhash { get; set; }
             }
 
             public class CreateEvent_requ
@@ -260,7 +260,7 @@ namespace Scheduler.Controllers
 
         }
 
-        public class _Respose<Tpayload> {
+        public class _Response<Tpayload> {
             public int ResponseType { get; set; }
             public bool Success { get; set; }
 
@@ -284,17 +284,20 @@ namespace Scheduler.Controllers
             }
             #endregion
 
-            private ApplicationUser GetAppUser() {
+            private ApplicationUser GetAppUser()
+            {
                 Task<ApplicationUser> task = _userManager.GetUserAsync(_user);
                 task.Wait();
                 return task.Result;
             }
 
             #region -- standard responses
-            private object convertResponse(int qtype, _Respose<object> resp) {
-                _Respose<T> make<T>(_Respose<object> r)
+            private object convertResponse(int qtype, _Response<object> resp)
+            {
+                _Response<T> make<T>(_Response<object> r)
                 {
-                    return new _Respose<T> {
+                    return new _Response<T>
+                    {
                         ResponseType = r.ResponseType,
                         Success = r.Success,
                         FailReason = r.FailReason,
@@ -314,9 +317,11 @@ namespace Scheduler.Controllers
                     default: throw new Exception("INVALID TYPE-CODE");
                 }
             }
-            private object GenerateNullResponse(int qtype) {
+            private object GenerateNullResponse(int qtype)
+            {
 
-                _Respose<object> resp = new _Respose<object> {
+                _Response<object> resp = new _Response<object>
+                {
                     ResponseType = qtype,
                     Success = false,
                     FailReason = FailReason.NULL_REQ,
@@ -326,20 +331,22 @@ namespace Scheduler.Controllers
                 return convertResponse(qtype, resp);
             }
 
-            private _Respose<_Request.Event_spec1> GenerateNotFoundResponse(_Request.GetOneEvent_requ requ)
+            private _Response<_Request.Event_spec1> GenerateNotFoundResponse(int qtype, int? retHash)
             {
-                return new _Respose<_Request.Event_spec1> {
-                    ResponseType = Qtype.GET_ONE_EVENT,
+                return new _Response<_Request.Event_spec1>
+                {
+                    ResponseType = qtype,
                     Success = false,
                     FailReason = FailReason.EVENT_NOT_FOUND_OR_INACCESSABLE,
                     PayLoad = null,
-                    ReturnHash = requ.ReturnHash
+                    ReturnHash = retHash
                 };
             }
 
-            private object GenerateInvalidResponse(int qtype) {
+            private object GenerateInvalidResponse(int qtype)
+            {
 
-                _Respose<object> resp = new _Respose<object>
+                _Response<object> resp = new _Response<object>
                 {
                     ResponseType = qtype,
                     Success = false,
@@ -352,7 +359,7 @@ namespace Scheduler.Controllers
 
             private object GenerateNeedLoginResponse<T>(int qtype, int? retHash)
             {
-                _Respose<object> resp = new _Respose<object>
+                _Response<object> resp = new _Response<object>
                 {
                     ResponseType = qtype,
                     Success = false,
@@ -362,17 +369,33 @@ namespace Scheduler.Controllers
                 };
                 return convertResponse(qtype, resp);
             }
+
+            private _Response<Tpayload> Adaptr<Tpayload, Trequest>(int qtyp, string reqStr, Func<Trequest, _Response<Tpayload>> func)
+            {
+                if (reqStr == null) return (_Response<Tpayload>)GenerateNullResponse(qtyp);
+                Trequest req;
+                try
+                {
+                    req = JsonSerializer.Deserialize<Trequest>(reqStr);
+                }
+                catch
+                {
+                    return (_Response<Tpayload>)GenerateInvalidResponse(qtyp);
+                }
+                return func(req);
+            }
             #endregion
+
 
 
 
 
             /* Process GetEvents request
              */
-            public _Respose<_Request.Event_spec1[]> Process_GE(_Request.GetEvents_requ req)
+            public _Response<_Request.Event_spec1[]> Process_GE(_Request.GetEvents_requ req)
             {
                 // check if request was null
-                if (req == null) return new _Respose<_Request.Event_spec1[]>
+                if (req == null) return new _Response<_Request.Event_spec1[]>
                 {
                     Success = false,
                     ResponseType = Qtype.GET_EVENTS,
@@ -382,7 +405,7 @@ namespace Scheduler.Controllers
                 };
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return new _Respose<_Request.Event_spec1[]>
+                if (user == null) return new _Response<_Request.Event_spec1[]>
                 {
                     Success = false,
                     ResponseType = Qtype.GET_EVENTS,
@@ -399,7 +422,7 @@ namespace Scheduler.Controllers
                 // remove sensitive user-info
                 var payload = eventSet.Select(e => new _Request.Event_spec1(e)).ToArray();
 
-                return new _Respose<_Request.Event_spec1[]>
+                return new _Response<_Request.Event_spec1[]>
                 {
                     Success = true,
                     ResponseType = Qtype.GET_EVENTS,
@@ -409,16 +432,21 @@ namespace Scheduler.Controllers
                 };
             }
 
+            public _Response<_Request.Event_spec1[]> Process_GE(string reqStr)
+            {
+                return Adaptr<_Request.Event_spec1[], _Request.GetEvents_requ>(Qtype.GET_EVENTS, reqStr, Process_GE);
+            }
+
             /* Process GetOneEvent request
              */
-            public _Respose<_Request.Event_spec1> Process_GOE(_Request.GetOneEvent_requ req)
+            public _Response<_Request.Event_spec1> Process_GOE(_Request.GetOneEvent_requ req)
             {
                 // check if request was null
-                if (req == null) return (_Respose<_Request.Event_spec1>)GenerateNullResponse(Qtype.GET_ONE_EVENT);
+                if (req == null) return (_Response<_Request.Event_spec1>)GenerateNullResponse(Qtype.GET_ONE_EVENT);
 
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return (_Respose<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.GET_ONE_EVENT, req.ReturnHash);
+                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.GET_ONE_EVENT, req.ReturnHash);
 
                 // try to get the requested event
                 IQueryable<_Request.Event_spec1> resultSet = _context.Event
@@ -426,13 +454,14 @@ namespace Scheduler.Controllers
                        .Select(x => new _Request.Event_spec1(x));
 
                 // check if we found it
-                if (!resultSet.Any()) return (_Respose<_Request.Event_spec1>)GenerateNotFoundResponse(req);
+                if (!resultSet.Any()) return (_Response<_Request.Event_spec1>)GenerateNotFoundResponse(Qtype.GET_ONE_EVENT, req.ReturnHash);
 
                 // extract the event
                 _Request.Event_spec1 payload = resultSet.First();
 
                 // return the event
-                return new _Respose<_Request.Event_spec1> {
+                return new _Response<_Request.Event_spec1>
+                {
                     Success = true,
                     ResponseType = Qtype.GET_ONE_EVENT,
                     FailReason = FailReason.NA,
@@ -441,20 +470,26 @@ namespace Scheduler.Controllers
                 };
             }
 
+            public _Response<_Request.Event_spec1> Process_GOE(string reqStr)
+            {
+                return Adaptr<_Request.Event_spec1, _Request.GetOneEvent_requ>(Qtype.GET_ONE_EVENT, reqStr, Process_GOE);
+            }
+
             /* Process CreateEvent request
              */
-            public _Respose<_Request.Event_spec1> Process_CRE(_Request.CreateEvent_requ req)
+            public _Response<_Request.Event_spec1> Process_CRE(_Request.CreateEvent_requ req)
             {
                 // check if request was null
-                if (req == null) return (_Respose<_Request.Event_spec1>)GenerateNullResponse(Qtype.CREATE_EVENT);
+                if (req == null) return (_Response<_Request.Event_spec1>)GenerateNullResponse(Qtype.CREATE_EVENT);
 
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return (_Respose<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.CREATE_EVENT, req.ReturnHash);
+                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.CREATE_EVENT, req.ReturnHash);
 
                 // check for valid start/stop :
                 if (req.Spec.End < req.Spec.Start)
-                    return new _Respose<_Request.Event_spec1> {
+                    return new _Response<_Request.Event_spec1>
+                    {
                         Success = false,
                         ResponseType = Qtype.CREATE_EVENT,
                         FailReason = FailReason.INVALID_ARG + "|An event cannot end before it begins!",
@@ -466,7 +501,8 @@ namespace Scheduler.Controllers
                 var spec = req.Spec;
 
                 // build Event-model
-                Event @event = new Event {
+                Event @event = new Event
+                {
                     Description = spec.Description,
                     EndDateTime = new DateTime(ticks: spec.End),
                     StartDateTime = new DateTime(ticks: spec.Start),
@@ -480,9 +516,9 @@ namespace Scheduler.Controllers
                 // update-database
                 _context.SaveChanges();
 
-                
+
                 // confirm-creation
-                return new _Respose<_Request.Event_spec1>
+                return new _Response<_Request.Event_spec1>
                 {
                     Success = true,
                     FailReason = FailReason.NA,
@@ -492,8 +528,61 @@ namespace Scheduler.Controllers
                 };
             }
 
-         //   private void foo() { var x = Qtype. }
+            public _Response<_Request.Event_spec1> Process_CRE(string reqStr)
+            {
+                return Adaptr<_Request.Event_spec1, _Request.CreateEvent_requ>(Qtype.CREATE_EVENT, reqStr, Process_CRE);
+            }
+
+
+            /* Process DeleateEvent request
+             */
+            public _Response<_Request.Event_spec1> Process_DEL(_Request.DeleteEvent_requ req)
+            {
+                const int qtyp = Qtype.DELETE_EVENT;
+                // check if request was null
+                if (req == null) return (_Response<_Request.Event_spec1>)GenerateNullResponse(qtyp);
+
+                // get the current-user
+                ApplicationUser user = GetAppUser();
+                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(qtyp, req.returnhash);
+
+                // try to get the requested event
+                IQueryable<Event> resultSet = _context.Event
+                       .Where(x => x.Id.Equals(req.id) && x.Owner.Id.Equals(user.Id));
+
+                // check if we found it
+                if (!resultSet.Any()) return (_Response<_Request.Event_spec1>)GenerateNotFoundResponse(qtyp, req.returnhash);
+
+                // extract the event
+                Event toDelete = resultSet.First();
+
+                // save the details
+                _Request.Event_spec1 payload = new _Request.Event_spec1(toDelete);
+
+                // delete the event
+                _context.Remove(toDelete);
+
+                // update db
+                _context.SaveChanges();
+
+                // return confirmation
+                return new _Response<_Request.Event_spec1>
+                {
+                    Success = true,
+                    FailReason = FailReason.NA,
+                    ResponseType = qtyp,
+                    PayLoad = payload,
+                    ReturnHash = req.returnhash
+                };
+            }
+
+            public _Response<_Request.Event_spec1> Process_DEL(string reqStr)
+            {
+                return Adaptr<_Request.Event_spec1, _Request.DeleteEvent_requ>(Qtype.DELETE_EVENT, reqStr, Process_DEL);
+            }
+
         }
+
 
 
         [Route("GetEvents/{reqStr}")]
@@ -501,7 +590,7 @@ namespace Scheduler.Controllers
             var rpu = new RequestProcessUtil(_context, _userManager, User);
             var req = reqStr==null ? null : JsonSerializer.Deserialize<_Request.GetEvents_requ>(reqStr);
             var resp = rpu.Process_GE(req);
-            var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1[]>>(resp);
+            var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1[]>>(resp);
             return respStr;
         }
 
@@ -510,7 +599,7 @@ namespace Scheduler.Controllers
             var rpu = new RequestProcessUtil(_context, _userManager, User);
             var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.GetOneEvent_requ>(reqStr);
             var resp = rpu.Process_GOE(req);
-            var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1>>(resp);
+            var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
             return respStr;
         }
 
@@ -520,9 +609,20 @@ namespace Scheduler.Controllers
             var rpu = new RequestProcessUtil(_context, _userManager, User);
             var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.CreateEvent_requ>(reqStr);
             var resp = rpu.Process_CRE(req);
-            var respStr = JsonSerializer.Serialize<_Respose<_Request.Event_spec1>>(resp);
+            var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
             return respStr;
         }
+
+        [Route("DeleteEvent/{reqStr}")]
+        public string DeleteEvent(string reqStr)
+        {
+            var rpu = new RequestProcessUtil(_context, _userManager, User);
+            var req = reqStr == null ? null : JsonSerializer.Deserialize<_Request.DeleteEvent_requ>(reqStr);
+            var resp = rpu.Process_DEL(req);
+            var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
+            return respStr;
+        }
+
         
     }
 }
