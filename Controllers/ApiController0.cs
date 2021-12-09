@@ -309,10 +309,10 @@ namespace Scheduler.Controllers
                 {
                     case Qtype.CREATE_EVENT:
                     case Qtype.DELETE_EVENT:
-                    case Qtype.EDIT_EVENT:
                     case Qtype.GET_ONE_EVENT:
                         return (object)make<_Request.Event_spec1>(resp);
                     case Qtype.GET_EVENTS:
+                    case Qtype.EDIT_EVENT:
                         return (object)make<_Request.Event_spec1[]>(resp);
                     default: throw new Exception("INVALID TYPE-CODE");
                 }
@@ -357,7 +357,7 @@ namespace Scheduler.Controllers
                 return convertResponse(qtype, resp);
             }
 
-            private object GenerateNeedLoginResponse<T>(int qtype, int? retHash)
+            private object GenerateNeedLoginResponse(int qtype, int? retHash)
             {
                 _Response<object> resp = new _Response<object>
                 {
@@ -446,7 +446,7 @@ namespace Scheduler.Controllers
 
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.GET_ONE_EVENT, req.ReturnHash);
+                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse(Qtype.GET_ONE_EVENT, req.ReturnHash);
 
                 // try to get the requested event
                 IQueryable<_Request.Event_spec1> resultSet = _context.Event
@@ -484,7 +484,7 @@ namespace Scheduler.Controllers
 
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(Qtype.CREATE_EVENT, req.ReturnHash);
+                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse(Qtype.CREATE_EVENT, req.ReturnHash);
 
                 // check for valid start/stop :
                 if (req.Spec.End < req.Spec.Start)
@@ -544,7 +544,7 @@ namespace Scheduler.Controllers
 
                 // get the current-user
                 ApplicationUser user = GetAppUser();
-                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse<_Request.Event_spec1>(qtyp, req.returnhash);
+                if (user == null) return (_Response<_Request.Event_spec1>)GenerateNeedLoginResponse(qtyp, req.returnhash);
 
                 // try to get the requested event
                 IQueryable<Event> resultSet = _context.Event
@@ -585,40 +585,69 @@ namespace Scheduler.Controllers
              */
             public _Response<_Request.Event_spec1[]> Process_EDI(_Request.EditEvent_requ req)
             {
-                /* const int qtyp = Qtype.EDIT_EVENT;
-                 // check if request was null
-                 if (req == null) return (_Response<_Request.Event_spec1[]>)GenerateNullResponse(qtyp);
-
-                 // get the current-user
-                 ApplicationUser user = GetAppUser();
-                 if (user == null) return (_Response<_Request.Event_spec1[]>)GenerateNeedLoginResponse<_Request.Event_spec1>(qtyp, req.ReturnHash);
-
-                 // try to get the requested event
-                 IQueryable<Event> resultSet = _context.Event
-                        .Where(x => x.Id.Equals(req.id) && x.Owner.Id.Equals(user.Id));
-
-                 // check if we found it
-                 if (!resultSet.Any()) return (_Response<_Request.Event_spec1>)GenerateNotFoundResponse(qtyp, req.r);
-
-                 // extract the event
-                 Event toDelete = resultSet.First();
-
-                 // save the details
-                 _Request.Event_spec1 payload = new _Request.Event_spec1(toDelete); */
-
-                /* TODO */
-
-                return new _Response<_Request.Event_spec1[]>
-                {
+                 const int qtyp = Qtype.EDIT_EVENT;
+                // check if request was null
+                if (req == null) return new _Response<_Request.Event_spec1[]> { 
                     Success = false,
-                    FailReason = "NOT-IMPLEMENTED",
-                    ResponseType = Qtype.EDIT_EVENT,
+                    FailReason = FailReason.NULL_REQ,
+                    ResponseType = qtyp,
                     PayLoad = null,
                     ReturnHash = -1
                 };
+                
+                 // get the current-user
+                 ApplicationUser user = GetAppUser();
+                 if (user == null) return (_Response<_Request.Event_spec1[]>)GenerateNeedLoginResponse(qtyp, req.ReturnHash);
+                
+                 // try to get the requested event
+                 IQueryable<Event> resultSet = _context.Event
+                        .Where(x => x.Id.Equals(req.Id) && x.Owner.Id.Equals(user.Id));
 
+                // check if we found it
+                if (!resultSet.Any()) return new _Response<_Request.Event_spec1[]> {
+                    Success = false,
+                    FailReason = FailReason.EVENT_NOT_FOUND_OR_INACCESSABLE,
+                    PayLoad = null,
+                    ResponseType = qtyp,
+                    ReturnHash = req.ReturnHash
+                 };
+                
+                 // extract the event
+                 Event toEdit = resultSet.First();
 
-                //return null;
+                // validate the proposed edit
+                if (req.NewSpec.End < req.NewSpec.Start) return (_Response<_Request.Event_spec1[]>)GenerateInvalidResponse(qtyp);
+
+                
+                 // save the details of the original-version
+                 _Request.Event_spec1 originalEvent = new _Request.Event_spec1(toEdit);
+
+                // edit the event
+                toEdit.Title = req.NewSpec.Title;
+                toEdit.Description = req.NewSpec.Description;
+                toEdit.StartDateTime = new DateTime(ticks: req.NewSpec.Start);
+                toEdit.EndDateTime = new DateTime(ticks: req.NewSpec.End);
+
+                // save details of the new-version
+                _Request.Event_spec1 newEvent = new _Request.Event_spec1(toEdit);
+
+                // update the database
+                _context.SaveChanges();
+
+                // return confirmation
+                return new _Response<_Request.Event_spec1[]>
+                {
+                    Success = true,
+                    FailReason = FailReason.NA,
+                    ResponseType = qtyp,
+                    PayLoad = new _Request.Event_spec1[] { originalEvent, newEvent },
+                    ReturnHash = req.ReturnHash
+                };
+
+            }
+            public _Response<_Request.Event_spec1[]> Process_EDI(string reqStr)
+            {
+                return Adaptr<_Request.Event_spec1[], _Request.EditEvent_requ>(Qtype.EDIT_EVENT, reqStr, Process_EDI);
             }
         }
 
@@ -655,6 +684,15 @@ namespace Scheduler.Controllers
             var rpu = new RequestProcessUtil(_context, _userManager, User);
             var resp = rpu.Process_DEL(reqStr);
             var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1>>(resp);
+            return respStr;
+        }
+
+        [Route("EditEvent/{reqStr}")]
+        public string EditEVent(string reqStr)
+        {
+            var rpu = new RequestProcessUtil(_context, _userManager, User);
+            var resp = rpu.Process_EDI(reqStr);
+            var respStr = JsonSerializer.Serialize<_Response<_Request.Event_spec1[]>>(resp);
             return respStr;
         }
 
