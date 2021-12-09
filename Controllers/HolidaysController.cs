@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace Scheduler.Controllers
     {
         // GET: api/<HolidaysController>
         [HttpGet]
+        [Authorize]
         public IEnumerable<string> Get()
         {
             var client = new RestClient("https://api.festdays.dev/v1/holidays?country=US&size=100&format=json&pretty=true&pretty=true&year=2021&key=56db283d18cf04931b2933396776f7610ee083");
