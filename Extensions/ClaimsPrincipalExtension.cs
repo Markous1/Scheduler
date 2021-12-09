@@ -8,17 +8,19 @@ namespace Scheduler.Extensions
 {
     public static class ClaimsPrincipalExtension
     {
-
+        /* This class is used to make ApplicationUser properties accessible to Views. 
+         * E.g. To show the user's first name in the navigation bar 
+         */
         public static string GetFirstName(this ClaimsPrincipal principal)
         {
-            var fullName = principal.Claims.FirstOrDefault(c => c.Type == "FirstName");
-            return fullName?.Value;
+            var firstName = principal.Claims.FirstOrDefault(c => c.Type == "FirstName");
+            return firstName?.Value;
         }
-
+        
         public static string GetLastName(this ClaimsPrincipal principal)
         {
-            var fullName = principal.Claims.FirstOrDefault(c => c.Type == "LastName");
-            return fullName?.Value;
+            var lastName = principal.Claims.FirstOrDefault(c => c.Type == "LastName");
+            return lastName?.Value;
         }
     }
 }

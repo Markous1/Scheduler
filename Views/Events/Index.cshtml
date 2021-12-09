@@ -1,23 +1,34 @@
-﻿@model IEnumerable<Scheduler.Models.Event>
+@model IEnumerable<Scheduler.Models.Event>
 
 @{
     ViewData["Title"] = "Index";
 }
 
 <link rel="stylesheet" href="~/css/calander.css" />
+   
 <h1 class="text-white">Upcoming Events</h1>
+
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Find by title/description: <input type="text" name="SearchString" value="@ViewData["CurrentFilter"]" />
+            <input type="submit" value="Search" class="btn btn-default" /> |
+            <a asp-action="Index">Back to Full List</a>
+        </p>
+    </div>
+</form>
 
 <table class="table">
     <thead>
         <tr>
             <th class="text-white">
-                @Html.DisplayNameFor(model => model.Title)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParm"]">@Html.DisplayNameFor(model => model.Title)</a>
             </th>
             <th class="text-white">
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th class="text-white">
-                @Html.DisplayNameFor(model => model.StartDateTime)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["StartDateSortParm"]">@Html.DisplayNameFor(model => model.StartDateTime)</a>
             </th>
             <th class="text-white">
                 @Html.DisplayNameFor(model => model.EndDateTime)
