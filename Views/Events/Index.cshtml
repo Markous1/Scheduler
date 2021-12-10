@@ -1,0 +1,62 @@
+@model IEnumerable<Scheduler.Models.Event>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<link rel="stylesheet" href="~/css/calander.css" />
+   
+<h1 class="text-white">Upcoming Events</h1>
+
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Find by title/description: <input type="text" name="SearchString" value="@ViewData["CurrentFilter"]" />
+            <input type="submit" value="Search" class="btn btn-default" /> |
+            <a asp-action="Index">Back to Full List</a>
+        </p>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th class="text-white">
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParm"]">@Html.DisplayNameFor(model => model.Title)</a>
+            </th>
+            <th class="text-white">
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th class="text-white">
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["StartDateSortParm"]">@Html.DisplayNameFor(model => model.StartDateTime)</a>
+            </th>
+            <th class="text-white">
+                @Html.DisplayNameFor(model => model.EndDateTime)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td class="text-white">
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td class="text-white">
+                @Html.DisplayFor(modelItem => item.Description)
+            </td>
+            <td class="text-white">
+                @Html.DisplayFor(modelItem => item.StartDateTime)
+            </td>
+            <td class="text-white">
+                @Html.DisplayFor(modelItem => item.EndDateTime)
+            </td>
+            <td>
+                <a class="btn btn-success" asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a class="btn btn-warning" asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a class="btn btn-danger" asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

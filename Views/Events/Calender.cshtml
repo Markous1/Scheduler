@@ -1,0 +1,23 @@
+﻿@model IEnumerable<Scheduler.Models.Event>
+
+<link rel="stylesheet" href="~/css/calander.css" />
+<div class="box">
+    <div class="calendar">
+        <div class=month>
+            <div class="date">
+                <h1 id="monthname"></h1>
+                <p id="year"></p>
+            </div>
+        </div>
+        <div class="daynames"></div>
+        <div class="days"></div>
+    </div>
+    <div class="btns">
+        <a class=" nav-link btn btn-success" asp-area="" asp-controller="Events" asp-action="Create">Add Event</a>
+    </div>
+</div>
+<div class="footerbtns">
+    <a class="nav-link btn btn-warning" onclick="prevCal()">previous</a>
+    <a class="nav-link btn btn-warning" onclick="nextCal()">Next</a>
+</div>
+<script src="~/js/calenderscript.js" asp-append-version="true"></script>
