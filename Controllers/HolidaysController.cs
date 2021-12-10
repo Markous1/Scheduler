@@ -17,21 +17,48 @@ namespace Scheduler.Controllers
         // GET: api/<HolidaysController>
         [HttpGet]
         [Authorize]
-        public IEnumerable<string> Get()
+        public string Get()
         {
             var client = new RestClient("https://api.festdays.dev/v1/holidays?country=US&size=100&format=json&pretty=true&pretty=true&year=2021&key=56db283d18cf04931b2933396776f7610ee083");
             var request = new RestRequest(Method.GET);
+            //request.AddHeader("token", "56db283d18cf04931b2933396776f7610ee083");
+            //<IEnumerable<string>>
             request.AddHeader("accept", "application/json");
-            var response = client.Execute<IEnumerable<string>>(request);
-            return response.Data;
+            IRestResponse response = client.Execute(request);
+            return response.Content;
         }
 
-        // GET api/<HolidaysController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        // GET: api/<HolidaysController>/date
+        [HttpGet("{date}")]
+        [Authorize]
+        public string Get(int date)
         {
-            return "value";
+            var client = new RestClient("https://api.festdays.dev/v1/holidays?year=2021&before=2021-12-01&after=2021-12-31&pretty=true&key=56db283d18cf04931b2933396776f7610ee083");
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("accept", "application/json");
+            IRestResponse response = client.Execute(request);
+            return response.Content;
         }
+
+        // GET api/<HolidaysController>/region/country
+        [HttpGet("{region}/{country}")]
+        [Authorize]
+        public string Get(string region, string country)
+        {
+            var client = new RestClient("https://api.festdays.dev/v1/holidays?region=CA&country=US&year=2021&pretty=true&key=56db283d18cf04931b2933396776f7610ee083");
+            var request = new RestRequest(Method.GET);
+            request.AddHeader("accept", "application/json");
+            var response = client.Execute(request);
+            return response.Content;
+        }
+
+        //// GET api/<HolidaysController>
+        //[HttpGet("{id}")]
+        //[Authorize]
+        //public string Get(int id)
+        //{
+        //    return "value";
+        //}
 
         // POST api/<HolidaysController>
         [HttpPost]
