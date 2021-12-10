@@ -10,10 +10,10 @@
 
 <form asp-action="Index" method="get">
     <div class="form-actions no-color">
-        <p>
+        <p class="text-white">
             Find by title/description: <input type="text" name="SearchString" value="@ViewData["CurrentFilter"]" />
-            <input type="submit" value="Search" class="btn btn-default" /> |
-            <a asp-action="Index">Back to Full List</a>
+            <input type="submit" value="Search" class="btn btn-success" /> |
+            <a class="btn btn-warning text-white" asp-action="Index">Back to Full List</a>
         </p>
     </div>
 </form>
@@ -22,13 +22,13 @@
     <thead>
         <tr>
             <th class="text-white">
-                <a asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParm"]">@Html.DisplayNameFor(model => model.Title)</a>
+                <a class="text-white" asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParm"]">@Html.DisplayNameFor(model => model.Title)</a>
             </th>
             <th class="text-white">
                 @Html.DisplayNameFor(model => model.Description)
             </th>
             <th class="text-white">
-                <a asp-action="Index" asp-route-sortOrder="@ViewData["StartDateSortParm"]">@Html.DisplayNameFor(model => model.StartDateTime)</a>
+                <a class="text-white" asp-action="Index" asp-route-sortOrder="@ViewData["StartDateSortParm"]">@Html.DisplayNameFor(model => model.StartDateTime)</a>
             </th>
             <th class="text-white">
                 @Html.DisplayNameFor(model => model.EndDateTime)
